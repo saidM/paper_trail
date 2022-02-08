@@ -35,7 +35,7 @@ module PaperTrail
         cattr_accessor :paper_trail_active
         self.paper_trail_active = true
 
-        has_many :versions, :as => :item, :order => 'created_at ASC, id ASC'
+        has_many :paper_trail_versions, :as => :item, :order => 'created_at ASC, id ASC'
 
         after_create  :record_create
         before_update :record_update
