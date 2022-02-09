@@ -71,13 +71,13 @@ module PaperTrail
       def version_at(timestamp)
         # Because a version stores how its object looked *before* the change,
         # we need to look for the first version created *after* the timestamp.
-        version = versions.after(timestamp).first
+        version = paper_trail_versions.after(timestamp).first
         version ? version.reify : self
       end
 
       # Returns the object (not a Version) as it was most recently.
       def previous_version
-        preceding_version = version ? version.previous : versions.last
+        preceding_version = version ? version.previous : paper_trail_versions.last
         preceding_version.try :reify
       end
 
@@ -93,13 +93,13 @@ module PaperTrail
 
       def record_create
         if switched_on?
-          versions.create merge_metadata(:event => 'create', :whodunnit => PaperTrail.whodunnit)
+          paper_trail_versions.create merge_metadata(:event => 'create', :whodunnit => PaperTrail.whodunnit)
         end
       end
 
       def record_update
         if switched_on? && changed_notably?
-          versions.build merge_metadata(:event     => 'update',
+          paper_trail_versions.build merge_metadata(:event     => 'update',
                                         :object    => object_to_string(item_before_change),
                                         :whodunnit => PaperTrail.whodunnit)
         end
@@ -107,18 +107,18 @@ module PaperTrail
 
       def record_destroy
         if switched_on? and not new_record?
-          Version.create merge_metadata(:item      => self,
+          PaperTrailVersion.create merge_metadata(:item      => self,
                                         :event     => 'destroy',
                                         :object    => object_to_string(item_before_change),
                                         :whodunnit => PaperTrail.whodunnit)
         end
-        versions.send :load_target
+        paper_trail_versions.send :load_target
       end
 
       def merge_metadata(data)
         # First we merge the model-level metadata in `meta`.
         meta.each do |k,v|
-          data[k] = 
+          data[k] =
             if v.respond_to?(:call)
               v.call(self)
             elsif v.is_a?(Symbol) && respond_to?(v)
